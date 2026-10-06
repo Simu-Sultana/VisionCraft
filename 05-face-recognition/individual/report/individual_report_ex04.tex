@@ -1,0 +1,158 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{listings}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue
+}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single
+}
+
+\title{\textbf{Computer Vision Project -- Exercise 04}\\Individual Report: Face Recognition Challenge}
+\author{Simu Sultana}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Scope of the Individual Work}
+
+This report describes my individual work for Exercise 4.5, the open-set face recognition challenge. The goal of this part was to implement open-set recognition methods using known classes (KCs) and known unknown classes (KUCs).
+
+The implemented file is:
+
+\begin{lstlisting}
+cvproj_exc/osr_learning.py
+\end{lstlisting}
+
+The required functions implemented in this file are:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{spl\_training()}
+    \item \texttt{mpl\_training()}
+\end{itemize}
+
+The group parts of the project, such as face detection, tracking, identification, clustering, and DIR evaluation, are submitted separately in the group submission. This report only covers the individual challenge part.
+
+\section{Challenge Setting}
+
+The challenge uses pre-extracted 128-dimensional feature vectors. The input data contains:
+
+\begin{itemize}[noitemsep]
+    \item known classes with labels greater than or equal to 0,
+    \item known unknown classes with label \texttt{-1}.
+\end{itemize}
+
+The task is to identify samples from known classes while rejecting samples that do not belong to any known class. This is an open-set recognition problem because the model must be able to output an unknown decision.
+
+The official benchmark considers several criteria, including AUCROC, DIR@FAR, balanced rank-1 identification rate, prediction time, and fitting time. In my local validation, I focused on implementing the required interfaces correctly and ensuring that the provided unit tests pass.
+
+\section{Implemented Approach}
+
+I implemented two open-set learning strategies:
+
+\begin{itemize}[noitemsep]
+    \item Single Pseudo Label (SPL)
+    \item Multi Pseudo Label (MPL)
+\end{itemize}
+
+Both methods use the available known unknown data to improve open-set rejection.
+
+\section{Single Pseudo Label Method}
+
+In the Single Pseudo Label approach, I treated all known unknown samples as one shared background class. This means that all samples with label \texttt{-1} are assigned to one pseudo unknown class during training.
+
+The idea is that the model learns two types of regions:
+
+\begin{itemize}[noitemsep]
+    \item regions belonging to known identities,
+    \item a shared region representing unknown samples.
+\end{itemize}
+
+During prediction, if a sample is assigned to the pseudo unknown class, it is returned as unknown. Otherwise, the predicted known class is returned.
+
+This approach is simple and efficient because it only adds one extra class for all known unknown samples.
+
+\section{Multi Pseudo Label Method}
+
+In the Multi Pseudo Label approach, I treated known unknown samples more separately. Instead of merging all known unknown samples into one background class, the method represents them with multiple pseudo labels.
+
+The motivation is that unknown samples may not form one compact group. By giving them multiple pseudo labels, the model can better represent different unknown regions in the feature space.
+
+During prediction, any pseudo-label prediction is mapped back to the unknown class. Predictions belonging to true known classes remain known-class predictions.
+
+This approach can give a more detailed representation of unknown data, but it can also increase the number of classes and therefore the computational cost.
+
+\section{Implementation Details}
+
+The implementation in \texttt{osr\_learning.py} follows the required function structure from the exercise template. The functions return trainable models that can be used by the provided test file.
+
+For the individual challenge, sklearn is allowed. Therefore, sklearn-based components or efficient custom logic can be used in this file. The rest of the group part does not rely on sklearn for the required k-NN and k-means implementations.
+
+The implementation was designed with the following goals:
+
+\begin{itemize}[noitemsep]
+    \item satisfy the expected SPL and MPL interfaces,
+    \item handle known and unknown labels correctly,
+    \item map pseudo labels back to the unknown class during prediction,
+    \item keep fitting and prediction computationally efficient,
+    \item pass the provided unit tests.
+\end{itemize}
+
+\section{Validation}
+
+I validated the implementation using the provided unit test file:
+
+\begin{lstlisting}
+test_osr_learning.py
+\end{lstlisting}
+
+The final test result was:
+
+\begin{lstlisting}
+Ran 6 tests
+
+OK
+\end{lstlisting}
+
+The saved test log is included in the submission:
+
+\begin{lstlisting}
+results/logs/osr_unittest_final.log
+\end{lstlisting}
+
+During one test run, runtime warnings appeared due to extreme numerical values in the test inputs. These warnings did not cause any failure. All six tests passed successfully.
+
+\section{Submitted Files}
+
+The individual submission contains:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{cvproj\_exc/osr\_learning.py}
+    \item \texttt{test\_osr\_learning.py}
+    \item \texttt{requirements.txt}
+    \item \texttt{individual\_report\_ex04.tex}
+    \item \texttt{individual\_report\_ex04.pdf}
+    \item \texttt{results/logs/osr\_unittest\_final.log}
+\end{itemize}
+
+\section{Conclusion}
+
+I implemented the individual open-set recognition challenge part by completing both SPL and MPL training functions in \texttt{osr\_learning.py}. The methods use known unknown data through pseudo-label strategies and map unknown-related predictions back to the unknown class.
+
+The provided unit tests pass successfully, which confirms that the required interface and basic functionality are correct. Therefore, the individual challenge submission is ready for evaluation.
+
+\end{document}

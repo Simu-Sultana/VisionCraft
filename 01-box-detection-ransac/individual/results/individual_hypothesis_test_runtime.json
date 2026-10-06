@@ -1,0 +1,10 @@
+{
+  "hypothesis": "H0: mean runtime(ransac) == mean runtime(preemptive); H1: ransac is slower than preemptive",
+  "num_pairs": 12,
+  "test": "paired t-test, one-sided where available",
+  "p_value": 0.9987310999593451,
+  "mean_ransac_runtime_s": 0.19060960833545929,
+  "mean_preemptive_runtime_s": 0.20464682499004994,
+  "speedup_ransac_over_preemptive": 0.9314076010938691,
+  "interpretation": "Do not reject H0 at alpha=0.05: the measured speed difference is not statistically strong."
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "method": "ransac",
+    "runs": 12,
+    "mean_runtime_s": 0.19060960833545929,
+    "std_runtime_s": 0.01944349834612024,
+    "mean_quality_score": 0.986971640074418,
+    "mean_height_m": 0.18935509750568105
+  },
+  {
+    "method": "mlesac",
+    "runs": 12,
+    "mean_runtime_s": 0.2491511416689415,
+    "std_runtime_s": 0.030928155973400418,
+    "mean_quality_score": 0.9860057468392643,
+    "mean_height_m": 0.1882830643330594
+  },
+  {
+    "method": "preemptive",
+    "runs": 12,
+    "mean_runtime_s": 0.20464682499004994,
+    "std_runtime_s": 0.021004831105955742,
+    "mean_quality_score": 0.9843635516411312,
+    "mean_height_m": 0.18917056257585563
+  }
+]

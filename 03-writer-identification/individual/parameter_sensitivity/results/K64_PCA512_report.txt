@@ -1,0 +1,27 @@
+Exercise 3.1: Writer Identification - Results Report
+====================================================
+
+Method summary
+--------------
+Local features are SIFT descriptors computed at SIFT keypoints. The orientation of every keypoint is fixed to 0 before descriptor computation. Descriptors are Hellinger-normalized by L1 normalization followed by signed square root. A MiniBatchKMeans dictionary is learned on randomly sampled training descriptors. Image-level descriptors are computed with VLAD, followed by optional power normalization and L2 normalization. Retrieval is evaluated on the test set using Top-1 accuracy and mean average precision (mAP). Exemplar classification trains one LinearSVC per test descriptor using that descriptor as the positive sample and all training descriptors as negatives; the L2-normalized SVM weight vector becomes the new descriptor.
+
+Parameters
+----------
+Clusters K: 64
+Max dictionary descriptors: 500000
+Dictionary sample files: all
+Binary preprocessing: True
+E-SVM C: 1000.0
+PCA whitening components: 512
+
+Results
+-------
+Experiment, Top-1, mAP
+plain_vlad, 0.811389, 0.616268
+powernorm_vlad, 0.822222, 0.631309
+powernorm_intranorm_vlad, 0.826944, 0.636630
+powernorm_intranorm_vlad_pca_whiten, 0.879167, 0.739265
+
+Discussion
+----------
+Plain VLAD gives the base retrieval performance. Power normalization is expected to reduce visual burstiness, where frequent local patterns dominate similarity. Intra-normalization normalizes each visual-word block separately and is an additional attempt to reduce the dominance of frequent clusters. PCA whitening is an additional post-processing experiment that decorrelates the global descriptors before the final L2 normalization. Exemplar-SVM changes the representation by learning a discriminative direction for each test image against the training set.

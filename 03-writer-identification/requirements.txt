@@ -1,0 +1,7 @@
+numpy
+opencv-python
+scikit-learn
+tqdm
+# only for individual/dinov2
+torch
+torchvision

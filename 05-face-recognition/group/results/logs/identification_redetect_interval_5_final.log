@@ -1,0 +1,60 @@
+FaceRecognizer loading: /Users/simusultana/Desktop/CV exe 5/data/recognition_gallery.pkl
+
+Testing Al_Pacino with 49 frames
+Al_Pacino:
+  Faces detected   : 49
+  Correct frames   : 0
+  Unknown frames   : 48
+  Visual accuracy  : 0.0000
+  Saved screenshots: 5
+
+Testing Alan_Ball with 432 frames
+Alan_Ball:
+  Faces detected   : 432
+  Correct frames   : 385
+  Unknown frames   : 47
+  Visual accuracy  : 0.8912
+  Saved screenshots: 5
+
+Testing Manuel_Pellegrini with 229 frames
+Manuel_Pellegrini:
+  Faces detected   : 229
+  Correct frames   : 229
+  Unknown frames   : 0
+  Visual accuracy  : 1.0000
+  Saved screenshots: 5
+
+Testing Maria_Shriver with 105 frames
+Maria_Shriver:
+  Faces detected   : 105
+  Correct frames   : 0
+  Unknown frames   : 105
+  Visual accuracy  : 0.0000
+  Saved screenshots: 5
+
+Testing Marina_Silva with 173 frames
+Marina_Silva:
+  Faces detected   : 173
+  Correct frames   : 173
+  Unknown frames   : 0
+  Visual accuracy  : 1.0000
+  Saved screenshots: 5
+
+Testing Nancy_Sinatra with 73 frames
+Nancy_Sinatra:
+  Faces detected   : 73
+  Correct frames   : 68
+  Unknown frames   : 5
+  Visual accuracy  : 0.9315
+  Saved screenshots: 5
+
+Testing Peter_Gilmour with 173 frames
+Peter_Gilmour:
+  Faces detected   : 173
+  Correct frames   : 173
+  Unknown frames   : 0
+  Visual accuracy  : 1.0000
+  Saved screenshots: 5
+
+Saved identification screenshots to: results/screenshots
+Saved prediction CSV to: results/logs/ident_predictions.csv

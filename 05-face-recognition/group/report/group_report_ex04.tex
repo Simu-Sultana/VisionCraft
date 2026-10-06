@@ -1,0 +1,252 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{listings}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue
+}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single
+}
+
+\title{\textbf{Computer Vision Project -- Exercise 04}\\Group Report}
+\author{Group Submission}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Scope of the Group Submission}
+
+This report covers the group part of Exercise 04:
+
+\begin{itemize}[noitemsep]
+    \item Exercise 4.1: Face detection, tracking, and alignment
+    \item Exercise 4.2: Face identification and open-set recognition
+    \item Exercise 4.3: Face clustering and re-identification
+    \item Exercise 4.4: DIR evaluation
+\end{itemize}
+
+Exercise 4.5 is treated as the individual challenge and is therefore not included in this group report.
+
+\section{Face Detection, Tracking, and Alignment}
+
+The face preprocessing pipeline consists of face detection, tracking, and alignment. MTCNN is used for face detection. The detected face is then aligned to a fixed resolution of $224 \times 224$ pixels before feature extraction.
+
+For video processing, template matching was implemented in the \texttt{track\_face} method. The first frame is initialized using MTCNN. For later frames, a local search window around the previous face position is used. This avoids running MTCNN on every frame and makes the system closer to the intended video tracking pipeline.
+
+\subsection{Tracking Drift and Fix}
+
+During testing, a template drift problem was observed. The tracker sometimes slowly moved away from the actual face while still producing a high matching score. This especially affected the Alan\_Ball sequence, where recognition was initially very poor.
+
+To reduce this problem, periodic MTCNN re-detection was added. The idea is to keep template tracking for efficiency, but re-anchor the tracker after a fixed number of frames.
+
+The following re-detection intervals were tested:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{4cm}p{6cm}p{4cm}}
+\toprule
+\textbf{Setting} & \textbf{Description} & \textbf{Alan\_Ball Result} \\
+\midrule
+\texttt{redetect\_interval = 15} & Less frequent MTCNN re-detection & 277/432 \\
+\texttt{redetect\_interval = 5} & Practical default balancing runtime and robustness & 385/432 \\
+\texttt{redetect\_interval = 1} & MTCNN on every frame, highest accuracy but slowest & 426/432 \\
+\bottomrule
+\end{tabular}
+\caption{Effect of periodic re-detection on the Alan\_Ball sequence.}
+\end{table}
+
+The final submitted group code uses:
+
+\begin{lstlisting}
+redetect_interval = 5
+\end{lstlisting}
+
+This was selected as the practical default because it still uses template tracking and avoids the high computational cost of running MTCNN on every frame. The \texttt{redetect\_interval = 1} result is reported as an additional accuracy-focused experiment.
+
+\section{Face Identification}
+
+Face identification was implemented using FaceNet embeddings and a k-nearest neighbor classifier. The implementation does not use sklearn for the group part.
+
+The implemented components are:
+
+\begin{itemize}[noitemsep]
+    \item FaceNet embedding extraction from aligned faces
+    \item Gallery construction using \texttt{partial\_fit}
+    \item k-nearest neighbor prediction using Euclidean distances
+    \item majority voting over the $k$ nearest neighbors
+    \item posterior probability computed as $k_i/k$
+    \item distance to the predicted class computed using the nearest neighbor from the predicted class
+    \item color and grayscale embeddings stored for each training face
+    \item prediction using both color and grayscale query embeddings
+\end{itemize}
+
+The final parameters are:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+\texttt{num\_neighbours} & 3 \\
+\texttt{max\_distance} & 1.02 \\
+\texttt{min\_prob} & 0.34 \\
+\texttt{redetect\_interval} & 5 \\
+\bottomrule
+\end{tabular}
+\caption{Final parameters used in the group source code.}
+\end{table}
+
+\section{Open-Set Recognition}
+
+The open-set decision rule predicts a face as unknown if the distance to the predicted class is too high or the posterior probability is too low:
+
+\begin{lstlisting}
+if distance_to_prediction > max_distance or posterior < min_prob:
+    prediction = "unknown"
+\end{lstlisting}
+
+The unknown identities used in testing were:
+
+\begin{itemize}[noitemsep]
+    \item Al\_Pacino
+    \item Maria\_Shriver
+\end{itemize}
+
+A threshold sweep was performed after fixing the tracker. For \texttt{redetect\_interval = 5}, the best balanced threshold was:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Threshold} & \textbf{Known Accuracy} & \textbf{Unknown Rejection} & \textbf{Balanced Score} \\
+\midrule
+1.02 & 1040/1080 = 96.30\% & 154/154 = 100\% & 98.15\% \\
+\bottomrule
+\end{tabular}
+\caption{Best threshold from the post-tracking-fix threshold sweep.}
+\end{table}
+
+\section{Identification Results}
+
+The final practical code setting uses \texttt{redetect\_interval = 5}. Selected final-code results are:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Identity} & \textbf{Result} \\
+\midrule
+Alan\_Ball & 385/432 = 89.12\% \\
+Al\_Pacino & 48/49 rejected as unknown \\
+Maria\_Shriver & 105/105 rejected as unknown \\
+\bottomrule
+\end{tabular}
+\caption{Selected final-code identification results with \texttt{redetect\_interval = 5}.}
+\end{table}
+
+An additional high-accuracy experiment was performed with \texttt{redetect\_interval = 1}. This setting is slower because it effectively uses MTCNN every frame, but it shows the upper accuracy that can be reached when tracking drift is removed.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Identity} & \textbf{Result} \\
+\midrule
+Alan\_Ball & 426/432 = 98.61\% \\
+Manuel\_Pellegrini & 229/229 = 100\% \\
+Marina\_Silva & 173/173 = 100\% \\
+Nancy\_Sinatra & 67/73 = 91.78\% \\
+Peter\_Gilmour & 173/173 = 100\% \\
+Al\_Pacino & 49/49 rejected as unknown \\
+Maria\_Shriver & 105/105 rejected as unknown \\
+\bottomrule
+\end{tabular}
+\caption{Accuracy-focused experiment with \texttt{redetect\_interval = 1}.}
+\end{table}
+
+Overall result for the \texttt{redetect\_interval = 1} experiment:
+
+\begin{itemize}[noitemsep]
+    \item Known-person accuracy: 1068/1080 = 98.89\%
+    \item Unknown rejection: 154/154 = 100\%
+\end{itemize}
+
+\section{Face Clustering and Re-Identification}
+
+The \texttt{FaceClustering} class implements k-means clustering in FaceNet embedding space.
+
+Implemented components:
+
+\begin{itemize}[noitemsep]
+    \item store unlabeled FaceNet embeddings
+    \item estimate cluster centers with k-means
+    \item store cluster assignments
+    \item predict the closest cluster for a query face
+    \item return the distance distribution to all cluster centers
+\end{itemize}
+
+Clustering was tested with two persons:
+
+\begin{itemize}[noitemsep]
+    \item Alan\_Ball
+    \item Manuel\_Pellegrini
+\end{itemize}
+
+Saved clustering evidence includes:
+
+\begin{itemize}[noitemsep]
+    \item \texttt{results/models/clustering\_gallery\_final.pkl}
+    \item \texttt{results/logs/cluster\_predictions.csv}
+    \item \texttt{results/screenshots\_cluster/}
+\end{itemize}
+
+\section{DIR Evaluation}
+
+The DIR evaluation was completed using the provided evaluation embeddings. The final metrics are:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+DIR@FAR=1\% & 0.707091 \\
+Threshold@1\% & -0.497051 \\
+DIR@FAR=10\% & 0.883659 \\
+Threshold@10\% & -0.646075 \\
+Minimum FAR with DIR $\geq$ 90\% & 0.140605 \\
+Threshold there & -0.671862 \\
+\bottomrule
+\end{tabular}
+\caption{Final DIR evaluation results.}
+\end{table}
+
+The DIR curve was saved as:
+
+\begin{lstlisting}
+results/plots/dir_curve.png
+\end{lstlisting}
+
+\section{Conclusion}
+
+The group part implements the full face recognition pipeline: detection, tracking, alignment, supervised face identification, open-set rejection, clustering-based re-identification, and DIR evaluation.
+
+The most important improvement was fixing template-tracking drift through periodic MTCNN re-detection. The final source code uses \texttt{redetect\_interval = 5} as a practical runtime-aware setting, while the report also documents the higher-accuracy \texttt{redetect\_interval = 1} experiment.
+
+\end{document}

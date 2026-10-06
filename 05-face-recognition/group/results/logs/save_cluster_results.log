@@ -1,0 +1,14 @@
+FaceClustering loading: /Users/simusultana/Desktop/CV exe 5/data/clustering_gallery.pkl
+
+Testing clustering for Alan_Ball with 432 frames
+Alan_Ball:
+  Faces detected   : 432
+  Saved screenshots: 5
+
+Testing clustering for Manuel_Pellegrini with 229 frames
+Manuel_Pellegrini:
+  Faces detected   : 229
+  Saved screenshots: 5
+
+Saved clustering screenshots to: results/screenshots_cluster
+Saved clustering CSV to: results/logs/cluster_predictions.csv

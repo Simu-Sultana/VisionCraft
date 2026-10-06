@@ -1,6 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+._*
+__MACOSX/
+.vscode/
+.idea/
+
+# Datasets and caches (not shared here, see each exercise README)
 data/
-*/data/
-*.CR3
+cache_ex3/
+proposal_cache/
 *.mat
+*.CR3
 *.npy
-*.zip
+*.onnx
+
+# LaTeX build files
+*.aux
+*.log
+*.out
+*.synctex.gz
+!**/results/**/*.log

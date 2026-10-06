@@ -1,0 +1,29 @@
+Exercise 3.1 Individual Experiment - DINOv2 + VLAD
+===================================================
+
+Method summary
+--------------
+This individual experiment replaces SIFT descriptors with self-supervised DINOv2 patch-token descriptors. The remaining retrieval pipeline is kept similar to the group solution: a MiniBatchKMeans codebook is learned from training descriptors, image-level representations are generated with VLAD, and retrieval is evaluated with Top-1 accuracy and mAP. Optional PCA whitening and Exemplar-SVM can be applied afterwards.
+
+Parameters
+----------
+DINOv2 model: dinov2_vits14
+Image size: 336
+Invert image for neural features: True
+Clusters K: 64
+Max dictionary descriptors: 100000
+Dictionary sample files: all
+PCA whitening components: 512
+E-SVM C: 1000.0
+
+Results
+-------
+Experiment, Top-1, mAP
+dino_plain_vlad, 0.307500, 0.184858
+dino_powernorm_vlad, 0.307222, 0.184557
+dino_powernorm_intranorm_vlad, 0.290833, 0.171793
+dino_powernorm_intranorm_vlad_pca_whiten, 0.331111, 0.202744
+
+Discussion notes
+----------------
+The purpose of this experiment is to test whether learned self-supervised patch descriptors capture writer-specific texture and stroke patterns better than handcrafted SIFT. If performance improves, it suggests the learned representation transfers well to historical handwriting. If performance does not improve, possible explanations are domain mismatch, too much resizing of document images, binarized input being far from natural images, limited codebook size, or insufficient tuning of DINO patch descriptors for this retrieval task.

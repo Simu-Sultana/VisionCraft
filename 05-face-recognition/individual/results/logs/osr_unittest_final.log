@@ -1,0 +1,11 @@
+/Users/simusultana/Desktop/CV exe 5/cvproj_exc/osr_learning.py:28: RuntimeWarning: divide by zero encountered in matmul
+  d2 = a2 + b2 - 2.0 * (a @ b.T)
+/Users/simusultana/Desktop/CV exe 5/cvproj_exc/osr_learning.py:28: RuntimeWarning: overflow encountered in matmul
+  d2 = a2 + b2 - 2.0 * (a @ b.T)
+/Users/simusultana/Desktop/CV exe 5/cvproj_exc/osr_learning.py:28: RuntimeWarning: invalid value encountered in matmul
+  d2 = a2 + b2 - 2.0 * (a @ b.T)
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.003s
+
+OK

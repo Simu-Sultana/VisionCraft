@@ -1,0 +1,125 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{parskip}
+\usepackage[hidelinks]{hyperref}
+
+\title{\textbf{Exercise 9: HDR Reconstruction from JPG Images}}
+\author{Simu Sultana}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Objective}
+
+Unlike RAW sensor data, JPG pixel values are not linearly proportional to the amount of light recorded by the camera. Before saving a JPG image, the camera applies a nonlinear intensity transformation. Therefore, HDR reconstruction from JPG images requires an approximate inverse camera response in order to return the JPG values to a linear-light representation.
+
+The objective of this exercise was to estimate this inverse response with a custom method, without using a specialized camera-response or HDR-calibration algorithm. Instead of assuming a gamma model, the implemented method estimates how JPG intensity changes when the exposure is doubled. The recovered inverse response is then used to linearize the JPG sequence before applying the HDR merging procedure.
+
+\section{Method}
+
+\subsection{Loading and Ordering the Exposure Sequence}
+
+All JPG images are loaded as floating-point RGB arrays and normalized to the interval $[0,1]$. Grayscale input is converted to three channels and additional channels are discarded. The mean luminance of each image is computed using
+
+\[
+Y = 0.299R + 0.587G + 0.114B.
+\]
+
+The images are sorted from brightest to darkest. The exposure times were obtained from the JPG EXIF metadata and are
+
+\[
+13,\;6,\;3.2,\;1.6,\;0.8,\;0.4,\;\frac{1}{5},\;\frac{1}{10},\;\frac{1}{20},\;\frac{1}{40},\;\frac{1}{80},\;\frac{1}{160}\ \text{s}.
+\]
+
+The first two exposure ratios, $13/6$ and $6/3.2$, are not exactly two. Therefore, the empirical exposure-doubling map is estimated only from the subset beginning at $3.2$~s, where each following image has exactly half the exposure time of the previous image. All images are still used later for HDR reconstruction with their actual exposure times.
+
+\subsection{Empirical Exposure-Doubling Map}
+
+The main individual part of the implementation is the estimation of an empirical exposure-doubling map. Let $y$ be the observed JPG luminance in a darker image. Within the selected exact-doubling subset, the adjacent brighter image was captured with twice the exposure, so the method estimates a mapping
+
+\[
+D(y) = \text{JPG value observed after doubling the exposure}.
+\]
+
+Corresponding luminance values are collected from neighboring exposure pairs within this exact-doubling subset. To reduce computation, every 12th pixel in both spatial directions is sampled. Very dark and nearly saturated values are excluded by keeping only samples in the interval
+
+\[
+0.025 < y < 0.92.
+\]
+
+The darker-exposure luminance values are divided into 180 intensity bins. For each bin containing at least 25 valid samples, the median corresponding value from the brighter exposure is used. The median makes the estimate less sensitive to JPEG artifacts, noise, and small scene changes. Missing bins are filled by interpolation. Finally, the mapping is forced to be monotonic because increasing the exposure should not decrease the observed JPG intensity.
+
+\subsection{Building the Inverse Camera Response}
+
+Let $g(y)$ denote the desired inverse JPG response, i.e. the relative linear-light value corresponding to an observed JPG value $y$. If doubling the exposure changes $y$ to $D(y)$, then in a linear domain the light value should double. Therefore,
+
+\[
+g(D(y)) = 2g(y).
+\]
+
+This relation is used to build a set of response anchors. Starting from a reference JPG value $y_0=0.045$, the method repeatedly applies the empirical doubling map:
+
+\[
+y_{k+1}=D(y_k),
+\]
+
+and assigns relative linear-light values
+
+\[
+g(y_0)=1,\quad g(y_1)=2,\quad g(y_2)=4,\quad \ldots
+\]
+
+The process stops when the JPG value reaches the upper useful range or after a maximum number of steps. The final inverse response curve is obtained by interpolation between these anchors in log-linear-light space. The endpoints are extrapolated using the local trend, the black level is shifted to zero, and the curve is normalized to an arbitrary relative scale. Only the relative linearity is required for the later HDR reconstruction.
+
+The program saves a diagnostic plot containing both the empirical exposure-doubling map and the resulting inverse camera curve as \texttt{exercise9\_empirical\_curve.png}.
+
+\subsection{Linearization and HDR Reconstruction}
+
+The estimated inverse response is applied independently to the red, green, and blue JPG channels by interpolation. This converts every input image to an approximate linear-light representation.
+
+For each exposure, the linearized values are divided by the corresponding actual exposure time obtained from the EXIF metadata:
+
+\[
+E_i = \frac{g(I_i)}{t_i},
+\]
+
+where $I_i$ is the observed JPG value and $E_i$ is the estimated scene radiance.
+
+The HDR image is constructed from the brightest exposure to the darkest. A pixel is taken from the current exposure only if all three JPG channels are below the saturation threshold of 0.88. Saturated pixels are left for the next darker exposure, and the darkest image supplies any remaining pixels. In this way, the algorithm uses the brightest available non-saturated measurement for every pixel.
+
+\subsection{Tone Mapping}
+
+The reconstructed radiance values have a dynamic range that cannot be displayed directly as a standard JPG image. Therefore, logarithmic tone mapping is applied:
+
+\[
+T = \log(1+E).
+\]
+
+The tone-mapped image is then normalized to $[0,1]$ using the 0.01 and 99.90 percentiles. Percentile normalization reduces the influence of extreme outlier values.
+
+\subsection{Final Display Adjustment}
+
+The final display image receives only small visual adjustments. The brightness is multiplied by 1.04, the contrast is increased with a factor of 1.25 around the midpoint 0.5, and the saturation is increased by a factor of 1.20. No gamma search or gamma-based camera-response model is used in this version of the implementation.
+
+The program saves the tone-mapped intermediate result as \texttt{exercise9\_jpg\_hdr\_log\_raw.jpg} and the final display result as \texttt{exercise9\_jpg\_hdr\_result.jpg}.
+
+\section{Results}
+
+The implemented method estimates the JPG nonlinearity directly from the known factor-of-two exposure changes within the selected exact-doubling subset. The resulting empirical curve provides a monotonic mapping from observed JPG values to relative linear-light values without assuming a predefined power-law response.
+
+After applying this inverse response, all images can be placed on a common radiance scale using their actual EXIF exposure times. The HDR reconstruction then combines information from multiple exposures so that bright regions can be taken from darker images while darker scene regions can use brighter exposures. The logarithmic tone mapping compresses the reconstructed dynamic range into a form that can be displayed as a normal JPG image.
+
+The curve plot is useful for checking whether the estimated exposure-doubling relationship is smooth and monotonic and whether the inverse response increases consistently with JPG intensity. The two saved HDR images provide the raw logarithmically tone-mapped result and the final display-adjusted result.
+
+\section{Conclusion}
+
+A custom empirical inverse camera-response estimation method was implemented for HDR reconstruction from JPG images. Instead of searching for an inverse gamma value, the method uses corresponding pixels from adjacent exposures in the selected exact-doubling subset to estimate how JPG values change when the exposure is doubled. This measured relationship is converted into an inverse response using the constraint that a doubled exposure must correspond to twice the linear-light value.
+
+The estimated response is then applied to linearize the JPG sequence, after which the existing exposure-based HDR merging procedure can be used. Logarithmic tone mapping and small display adjustments produce the final viewable JPG result. The method does not rely on a specialized HDR response-estimation library or on a predefined gamma model.
+
+\end{document}

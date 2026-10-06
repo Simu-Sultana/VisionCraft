@@ -1,0 +1,7 @@
+===== DIR Evaluation Results =====
+DIR@FAR=1%      : 0.707091
+Threshold@1%    : -0.497051
+DIR@FAR=10%     : 0.883659
+Threshold@10%   : -0.646075
+Minimum FAR with DIR >= 90%: 0.140605
+Threshold there           : -0.671862

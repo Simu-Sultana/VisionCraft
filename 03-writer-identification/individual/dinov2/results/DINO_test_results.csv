@@ -1,0 +1,5 @@
+name,top1,mAP
+dino_plain_vlad,0.47,0.3345112309646981
+dino_powernorm_vlad,0.45,0.33204498414624906
+dino_powernorm_intranorm_vlad,0.42,0.3180078235432092
+dino_powernorm_intranorm_vlad_pca_whiten,0.1,0.09933995153708819

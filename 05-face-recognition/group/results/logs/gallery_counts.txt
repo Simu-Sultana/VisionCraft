@@ -1,0 +1,10 @@
+Gallery file: /Users/simusultana/Desktop/CV exe 5/data/recognition_gallery.pkl
+Total embeddings: 646
+Embedding shape: (646, 128)
+
+Samples per label:
+Alan_Ball: 160
+Manuel_Pellegrini: 114
+Marina_Silva: 122
+Nancy_Sinatra: 100
+Peter_Gilmour: 150
